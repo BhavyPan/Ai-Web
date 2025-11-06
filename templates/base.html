@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gmail AI Assistant{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #4a5568;
+            --text-primary: #e2e8f0;
+            --text-secondary: #cbd5e0;
+            --text-muted: #a0aec0;
+            --accent-color: #2b6cb0;
+            --danger-color: #c53030;
+            --warning-color: #d69e2e;
+            --success-color: #38a169;
+        }
+        
+        body { 
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0;
+            padding: 0;
+        }
+        
+        .sidebar { 
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-right: 1px solid var(--bg-tertiary);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .main-content { 
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .sidebar-link {
+            display: block;
+            padding: 10px 15px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-link:hover {
+            background-color: var(--bg-tertiary);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar-link.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .email-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--bg-tertiary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .email-item:hover {
+            background-color: var(--bg-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        
+        .login-btn {
+            background: white;
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .login-btn:hover {
+            background: #f8f9fa;
+            color: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .priority-work { background: var(--danger-color); }
+        .priority-medium { background: var(--warning-color); color: #000; }
+        .priority-low { background: var(--bg-tertiary); }
+        .priority-promotions { background: #17a2b8; }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .ai-insight {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+        
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .email-subject {
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .email-body-content {
+            background-color: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--bg-tertiary);
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-top: 1rem;
+        }
+        
+        .label-badge {
+            background: var(--accent-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin: 2px;
+            display: inline-block;
+        }
+        
+        .compose-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 0;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .compose-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="text-center mb-4">
+                    <h4><i class="fas fa-robot me-2"></i>Gmail AI</h4>
+                    <small class="text-muted">Smart Email Management</small>
+                </div>
+                
+                {% if session.get('google_creds') %}
+                <div class="mb-3 p-2 bg-dark rounded">
+                    <small class="text-muted">Signed in as:</small>
+                    <br>
+                    <strong>{{ session.get('user_info', {}).get('email', 'User') }}</strong>
+                </div>
+                {% endif %}
+                
+                <a href="/" class="sidebar-link {% if request.endpoint == 'home' %}active{% endif %}">
+                    <i class="fas fa-home me-2"></i>Home
+                </a>
+                
+                {% if session.get('google_creds') %}
+                <a href="/inbox" class="sidebar-link {% if request.endpoint == 'inbox' %}active{% endif %}">
+                    <i class="fas fa-inbox me-2"></i>Inbox
+                </a>
+                <a href="/compose" class="sidebar-link {% if request.endpoint == 'compose' %}active{% endif %}">
+                    <i class="fas fa-edit me-2"></i>Compose Email
+                </a>
+                <a href="/ai-compose" class="sidebar-link {% if request.endpoint == 'ai_compose' %}active{% endif %}">
+                    <i class="fas fa-robot me-2"></i>AI Compose
+                </a>
+                <a href="/dashboard" class="sidebar-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-bar me-2"></i>Analytics
+                </a>
+                <a href="/smart-labels" class="sidebar-link {% if request.endpoint == 'smart_labels' %}active{% endif %}">
+                    <i class="fas fa-tags me-2"></i>Smart Labels
+                </a>
+                
+                <div class="mt-4">
+                    <h6 class="text-muted mb-3"><i class="fas fa-filter me-2"></i>Priority Filters</h6>
+                    <div class="priority-filter">
+                        <div class="priority-color work-priority" style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; background-color: #dc3545;"></div>
+                        <span>Work Priority</span>
+                    </div>
+                    <div class="priority-filter">
+                        <div class="priority-color medium-priority" style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; background-color: #ffc107;"></div>
+                        <span>Medium Priority</span>
+                    </div>
+                    <div class="priority-filter">
+                        <div class="priority-color low-priority" style="width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 8px; background-color: #6c757d;"></div>
+                        <span>Low Priority</span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <a href="/logout" class="btn btn-warning btn-sm w-100">
+                        <i class="fas fa-sign-out-alt me-2"></i>Sign Out
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show">
+                                <i class="fas fa-info-circle me-2"></i>{{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function viewEmail(emailId, isDraft = false) {
+            if (isDraft) {
+                // Handle draft viewing
+                alert('Draft functionality would open here');
+            } else {
+                window.location.href = '/email/' + emailId;
+            }
+        }
+
+        function viewEmailSummary(emailId) {
+            window.location.href = '/email/' + emailId + '/summary';
+        }
+
+        // Auto-dismiss flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    if (alert.parentElement) {
+                        alert.remove();
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
