@@ -104,7 +104,7 @@
                 <div class="ai-insight">
                     {% if labels %}
                         <p>Based on your email patterns, consider creating filters for your most common labels to automate organization.</p>
-                        <p>Focus on handling <strong>{{ labels|max(key=labels.get) if labels }}</strong> emails first as they appear most frequently.</p>
+                       <p>Focus on handling <strong>{{ most_common_label if most_common_label }}</strong> emails first as they appear most frequently.</p>
                     {% else %}
                         <p>AI will analyze your emails and provide smart labeling recommendations to help organize your inbox efficiently.</p>
                     {% endif %}
