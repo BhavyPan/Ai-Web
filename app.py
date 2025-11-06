@@ -52,32 +52,35 @@ SCOPES = [
     "openid"
 ]
 
-# AI Functions
-def setup_gemini():
+# AI Functionsdef setup_gemini():
     """Setup Gemini AI with proper error handling"""
     try:
         if not GEMINI_API_KEY:
-            logger.error("GEMINI_API_KEY not set")
+            logger.error("❌ GEMINI_API_KEY is not set")
             return None
         
+        if GEMINI_API_KEY == "AIzaSyBc4XCu2aOs6eKJqu1AXJ2Vwa5qK1bamB8":
+            logger.error("❌ Using default Gemini API key - please set your own")
+            return None
+            
         genai.configure(api_key=GEMINI_API_KEY)
-        return genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        
+        # Test the configuration
+        test_response = model.generate_content("Test")
+        logger.info("✅ Gemini AI configured successfully")
+        return model
+        
     except Exception as e:
-        logger.error(f"Gemini setup error: {str(e)}")
+        logger.error(f"❌ Gemini setup error: {str(e)}")
         return None
-
-def strip_html(html_content):
-    """Strip HTML tags from content"""
-    cleanr = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-    cleantext = re.sub(cleanr, '', html_content)
-    return cleantext
 
 def summarize_email(subject, body, snippet):
     """Generate AI summary for email"""
     try:
         model = setup_gemini()
         if not model:
-            return "AI summarization unavailable"
+            return "❌ AI service unavailable - Please check Gemini API key"
         
         body_text = strip_html(body)[:4000] if body else snippet[:1000]
         
@@ -96,40 +99,42 @@ def summarize_email(subject, body, snippet):
         """
         
         response = model.generate_content(prompt)
-        return response.text
+        return response.text if response.text else "No summary generated"
+        
     except Exception as e:
-        logger.error(f"Summarization error: {str(e)}")
-        return "Unable to generate summary"
+        logger.error(f"❌ Summarization error: {str(e)}")
+        return f"Unable to generate summary: {str(e)}"
 
-def generate_smart_reply(subject, body, sender):
-    """Generate smart AI reply"""
+def generate_ai_composed_email(context, recipient, purpose, tone="professional"):
+    """Generate AI-composed email from scratch"""
     try:
         model = setup_gemini()
         if not model:
-            return "AI reply generation unavailable"
-        
-        body_text = strip_html(body)[:3000] if body else ""
+            return "❌ AI service unavailable - Please check Gemini API key"
         
         prompt = f"""
-        Generate a professional email reply for this message:
+        Compose an email with the following details:
         
-        From: {sender}
-        Subject: {subject}
-        Content: {body_text}
+        Recipient: {recipient}
+        Purpose: {purpose}
+        Context: {context}
+        Tone: {tone}
         
-        Provide 3 different reply options:
-        1. Professional and formal
-        2. Casual and friendly  
-        3. Quick acknowledgment
+        Please generate a complete email with:
+        - Appropriate subject line
+        - Professional greeting
+        - Clear and concise body content
+        - Professional closing
         
-        Format each option clearly.
+        Make sure the email is well-structured and appropriate for the given context and tone.
         """
         
         response = model.generate_content(prompt)
-        return response.text
+        return response.text if response.text else "No email content generated"
+        
     except Exception as e:
-        logger.error(f"Smart reply error: {str(e)}")
-        return "Unable to generate smart replies"
+        logger.error(f"❌ AI composition error: {str(e)}")
+        return f"Unable to generate email content: {str(e)}"
 
 def generate_ai_composed_email(context, recipient, purpose, tone="professional"):
     """Generate AI-composed email from scratch"""
