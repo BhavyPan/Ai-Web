@@ -4,10 +4,7 @@ from pathlib import Path
 
 # Vercel-specific setup
 if os.environ.get('VERCEL'):
-    # Add current directory to Python path
     sys.path.append(str(Path(__file__).parent))
-    
-    # Set Flask environment
     os.environ['FLASK_ENV'] = 'production'
 
 from flask import Flask, request, redirect, url_for, flash, render_template_string, jsonify, session, render_template
@@ -726,7 +723,21 @@ def smart_labels():
     try:
         emails = fetch_emails("inbox", "", 10)
         analyzed_emails = analyze_and_label_emails(emails)
-        return render_template('smart-labels.html', emails=analyzed_emails)
+        
+        # Fix for the max() error
+        label_counts = {}
+        for email in analyzed_emails:
+            for label in email.get('ai_labels', []):
+                label_counts[label] = label_counts.get(label, 0) + 1
+        
+        most_common_label = None
+        if label_counts:
+            most_common_label = max(label_counts, key=label_counts.get)
+        
+        return render_template('smart-labels.html', 
+                             emails=analyzed_emails, 
+                             label_counts=label_counts,
+                             most_common_label=most_common_label)
     except Exception as e:
         if "AUTH_REQUIRED" in str(e):
             return redirect(url_for('home'))
@@ -857,7 +868,6 @@ def favicon():
     return '', 404
 
 # Vercel requires the app to be named 'app'
-# For Vercel serverless deployment
 if __name__ == '__main__':
     if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         logger.warning("Warning: GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET not set. OAuth will not work.")
