@@ -1,3 +1,16 @@
+import traceback
+import sys
+
+try:
+    # Your existing imports and code here
+    from flask import Flask, request, redirect, url_for, flash, render_template_string, jsonify, session, render_template
+    from google.oauth2.credentials import Credentials
+    # ... rest of your imports
+    
+except Exception as e:
+    print("IMPORT ERROR:", str(e))
+    print(traceback.format_exc())
+    sys.exit(1)
 import os
 import sys
 from pathlib import Path
