@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-inbox me-2"></i>Smart Inbox</h3>
+    <div>
+        <a href="/compose" class="btn btn-success me-2">
+            <i class="fas fa-edit me-2"></i>Compose
+        </a>
+        <a href="/inbox" class="btn btn-primary">
+            <i class="fas fa-sync-alt me-2"></i>Refresh
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stats-card">
+            <h4>{{ emails|length }}</h4>
+            <p>Total Emails</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <h4>{{ emails|selectattr('priority', 'equalto', 'work')|list|length }}</h4>
+            <p>Work Priority</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <h4>{{ emails|selectattr('priority', 'equalto', 'promotions')|list|length }}</h4>
+            <p>Promotions</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <h4>{{ emails|selectattr('priority', 'equalto', 'low')|list|length }}</h4>
+            <p>Low Priority</p>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark">
+    <div class="card-body">
+        <div class="list-group">
+            {% for email in emails %}
+            <div class="list-group-item email-item">
+                <div class="d-flex w-100 justify-content-between" onclick="viewEmail('{{ email.id }}', {{ email.is_draft|default(false)|lower }})" style="cursor: pointer;">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            <b>{{ email.sender }}</b>
+                            {% if email.priority == 'work' %}<span class="badge bg-danger ms-1">URGENT</span>{% endif %}
+                            {% if email.is_draft %}<span class="badge bg-warning ms-1">DRAFT</span>{% endif %}
+                        </h6>
+                        <p class="mb-1"><b>{{ email.subject }}</b> - {{ email.snippet[:100] }}{% if email.snippet|length > 100 %}...{% endif %}</p>
+                        {% if email.ai_labels %}
+                        <div class="mt-1">
+                            {% for label in email.ai_labels %}
+                            <span class="label-badge">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">{{ email.date }}</small>
+                        <div class="mt-2">
+                            <span class="priority-badge priority-{{ email.priority|default('low') }}">{{ email.priority|default('low') }}</span>
+                        </div>
+                        <div class="mt-1">
+                            <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); viewEmailSummary('{{ email.id }}')">
+                                <i class="fas fa-robot"></i> AI Analyze
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox" style="font-size: 3rem; opacity: 0.5;"></i>
+                <p class="mt-3 text-muted">No emails found in {{ label.title() }}.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
