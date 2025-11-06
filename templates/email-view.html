@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="email-subject-heading">{{ email.subject }}</h3>
+    <div class="btn-group">
+        <a href="/email/{{ email.id }}/summary" class="btn btn-info">
+            <i class="fas fa-robot me-2"></i>AI Analysis
+        </a>
+        <button class="btn btn-secondary" onclick="window.history.back()">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </button>
+    </div>
+</div>
+
+<div class="card bg-dark">
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong><i class="fas fa-user me-2"></i>From:</strong> {{ email.sender }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong><i class="fas fa-calendar me-2"></i>Date:</strong> {{ email.date }}</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong><i class="fas fa-tag me-2"></i>Priority:</strong> 
+                <span class="priority-badge priority-{{ email.priority }}">{{ email.priority }}</span></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong><i class="fas fa-envelope me-2"></i>ID:</strong> 
+                <code>{{ email.id }}</code></p>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="email-body-content mt-4">
+            <h5><i class="fas fa-align-left me-2"></i>Content:</h5>
+            {% if email.body and email.body != "No email content available" and email.body != "Error loading email content" %}
+                {{ email.body|safe }}
+            {% else %}
+                <p class="text-muted"><i>No content available</i></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
