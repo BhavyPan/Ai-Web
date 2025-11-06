@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-tags me-2"></i>Smart Labels</h3>
+    <button class="btn btn-primary" onclick="window.location.reload()">
+        <i class="fas fa-sync-alt me-2"></i>Refresh Analysis
+    </button>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    AI-powered email labeling automatically categorizes your emails for better organization.
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h6><i class="fas fa-envelope me-2"></i>Recently Analyzed Emails</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for email in emails %}
+                    <div class="list-group-item email-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <b>{{ email.sender }}</b>
+                                    <span class="priority-badge priority-{{ email.priority|default('low') }} ms-2">{{ email.priority|default('low') }}</span>
+                                </h6>
+                                <p class="mb-1"><b>{{ email.subject }}</b> - {{ email.snippet[:100] }}{% if email.snippet|length > 100 %}...{% endif %}</p>
+                                {% if email.ai_labels %}
+                                <div class="mt-2">
+                                    <small class="text-muted">AI Labels:</small>
+                                    {% for label in email.ai_labels %}
+                                    <span class="label-badge">{{ label }}</span>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if email.summary and email.summary != "Unable to generate summary" %}
+                                <div class="mt-2">
+                                    <small class="text-muted">AI Summary:</small>
+                                    <p class="mb-0 text-muted small">{{ email.summary[:150] }}{% if email.summary|length > 150 %}...{% endif %}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ email.date }}</small>
+                                <div class="mt-2">
+                                    <a href="/email/{{ email.id }}/summary" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-robot"></i> Full Analysis
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-tags" style="font-size: 3rem; opacity: 0.5;"></i>
+                        <p class="mt-3 text-muted">No emails analyzed yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h6><i class="fas fa-chart-pie me-2"></i>Label Distribution</h6>
+            </div>
+            <div class="card-body">
+                {% set labels = {} %}
+                {% for email in emails %}
+                    {% for label in email.ai_labels %}
+                        {% if labels.update({label: labels.get(label, 0) + 1}) %}{% endif %}
+                    {% endfor %}
+                {% endfor %}
+                
+                {% if labels %}
+                    {% for label, count in labels.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="label-badge">{{ label }}</span>
+                        <span class="text-muted">{{ count }} emails</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No labels generated yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h6><i class="fas fa-lightbulb me-2"></i>AI Recommendations</h6>
+            </div>
+            <div class="card-body">
+                <div class="ai-insight">
+                    {% if labels %}
+                        <p>Based on your email patterns, consider creating filters for your most common labels to automate organization.</p>
+                        <p>Focus on handling <strong>{{ labels|max(key=labels.get) if labels }}</strong> emails first as they appear most frequently.</p>
+                    {% else %}
+                        <p>AI will analyze your emails and provide smart labeling recommendations to help organize your inbox efficiently.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
