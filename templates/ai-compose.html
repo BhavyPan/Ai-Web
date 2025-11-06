@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-robot me-2"></i>AI Email Composer</h3>
+    <button class="btn btn-secondary" onclick="window.history.back()">
+        <i class="fas fa-arrow-left me-2"></i>Back
+    </button>
+</div>
+
+<div class="card bg-dark">
+    <div class="card-body">
+        <form id="aiComposeForm">
+            <div class="mb-3">
+                <label for="recipient" class="form-label">Recipient:</label>
+                <input type="text" class="form-control bg-dark text-light" id="recipient" required 
+                       placeholder="e.g., john@company.com or John Smith">
+            </div>
+            
+            <div class="mb-3">
+                <label for="purpose" class="form-label">Email Purpose:</label>
+                <input type="text" class="form-control bg-dark text-light" id="purpose" required 
+                       placeholder="e.g., Meeting request, Project update, Job inquiry">
+            </div>
+            
+            <div class="mb-3">
+                <label for="context" class="form-label">Additional Context:</label>
+                <textarea class="form-control bg-dark text-light" id="context" rows="4" 
+                          placeholder="Provide any additional details, key points to include, or specific requirements..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="tone" class="form-label">Tone:</label>
+                <select class="form-control bg-dark text-light" id="tone">
+                    <option value="professional">Professional</option>
+                    <option value="casual">Casual</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="formal">Formal</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="generateEmail()">
+                    <i class="fas fa-robot me-2"></i>Generate Email
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                    <i class="fas fa-trash me-2"></i>Clear
+                </button>
+            </div>
+        </form>
+        
+        <div id="generatedEmail" class="mt-4" style="display: none;">
+            <h5>Generated Email:</h5>
+            <div class="card bg-secondary">
+                <div class="card-body">
+                    <div id="emailPreview" class="email-body-content"></div>
+                </div>
+            </div>
+            
+            <div class="mt-3 d-flex gap-2">
+                <button class="btn btn-success" onclick="useGeneratedEmail()">
+                    <i class="fas fa-check me-2"></i>Use This Email
+                </button>
+                <button class="btn btn-outline-warning" onclick="regenerateEmail()">
+                    <i class="fas fa-redo me-2"></i>Regenerate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function generateEmail() {
+        const recipient = document.getElementById('recipient').value;
+        const purpose = document.getElementById('purpose').value;
+        const context = document.getElementById('context').value;
+        const tone = document.getElementById('tone').value;
+
+        if (!recipient || !purpose) {
+            alert('Please fill in recipient and purpose fields');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/ai-compose-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    recipient: recipient,
+                    purpose: purpose,
+                    context: context,
+                    tone: tone
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('emailPreview').innerHTML = data.email_content.replace(/\n/g, '<br>');
+                document.getElementById('generatedEmail').style.display = 'block';
+                
+                // Scroll to generated email
+                document.getElementById('generatedEmail').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('AI composition failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Network error: ' + error.message);
+        }
+    }
+
+    function useGeneratedEmail() {
+        const emailContent = document.getElementById('emailPreview').textContent;
+        // Store in sessionStorage and redirect to compose page
+        sessionStorage.setItem('ai_generated_email', emailContent);
+        window.location.href = '/compose';
+    }
+
+    function regenerateEmail() {
+        generateEmail();
+    }
+
+    function clearForm() {
+        document.getElementById('aiComposeForm').reset();
+        document.getElementById('generatedEmail').style.display = 'none';
+    }
+
+    // Check if we have a generated email to pre-fill
+    document.addEventListener('DOMContentLoaded', function() {
+        const generatedEmail = sessionStorage.getItem('ai_generated_email');
+        if (generatedEmail) {
+            sessionStorage.removeItem('ai_generated_email');
+            // You could pre-fill the compose form here if needed
+        }
+    });
+</script>
+{% endblock %}
